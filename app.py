@@ -33,4 +33,4 @@ st.write(f"Loaded {len(symbols)} S&P 500 symbols.")
 
 min_criteria = st.slider("Minimum number of criteria met (for main table)", 1, 4, 4)
 
-@st.cache_data(show_sp
+@st.cache_data(show_sp)

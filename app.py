@@ -31,7 +31,7 @@ def fetch_data(symbol):
     except Exception:
         return None
 
-def crossed_within_last_n_days(df, n=5):
+def crossed_within_last_n_days(df, n=100):
     ema_13 = df['ema_13']
     ema_48 = df['ema_48']
 

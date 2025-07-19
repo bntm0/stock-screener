@@ -3,13 +3,20 @@ import yfinance as yf
 import pandas as pd
 import ta
 
-st.title("S&P 500 EMA Crossover (Last 3 Days) Screener")
+st.title("S&P 500 + NASDAQ-100 EMA Crossover Screener")
 
 @st.cache_data(show_spinner=False)
 def get_sp500_symbols():
     url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
     tables = pd.read_html(url)
     return tables[0]['Symbol'].tolist()
+
+@st.cache_data(show_spinner=False)
+def get_nasdaq100_symbols():
+    url = "https://en.wikipedia.org/wiki/NASDAQ-100"
+    tables = pd.read_html(url)
+    df = tables[4] if 'Ticker' in tables[4].columns else tables[3]  # Wikipedia structure can change
+    return df['Ticker'].str.replace(r"\.", "-", regex=True).tolist()
 
 @st.cache_data(show_spinner=False)
 def fetch_data(symbol):
@@ -47,19 +54,23 @@ def analyze_stock(symbol, df):
         }
     return None
 
-st.write("Scanning for S&P 500 stocks where **13 EMA crossed above 48 EMA within the last 3 days**...")
+st.write("Scanning **S&P 500 + NASDAQ-100** stocks where 13 EMA crossed above 48 EMA in the last 3 days...")
 
-symbols = get_sp500_symbols()
+symbols_sp = get_sp500_symbols()
+symbols_nq = get_nasdaq100_symbols()
+
+# Combine and remove duplicates
+all_symbols = list(set(symbols_sp + symbols_nq))
+
 results = []
-
-for symbol in symbols:
+for symbol in all_symbols:
     df = fetch_data(symbol)
     result = analyze_stock(symbol, df)
     if result:
         results.append(result)
 
 if results:
-    st.success(f"{len(results)} stocks matched the crossover condition in the last 3 days.")
+    st.success(f"{len(results)} stocks matched the EMA crossover condition.")
     st.dataframe(pd.DataFrame(results))
 else:
-    st.warning("No stocks matched the EMA crossover condition in the last 3 days.")
+    st.warning("No stocks matched the EMA crossover condition.")

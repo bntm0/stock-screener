@@ -15,7 +15,7 @@ def get_sp500_symbols():
 def fetch_data(symbol):
     try:
         df = yf.download(symbol, period="6mo", interval="1d", progress=False)
-        if df.empty or len(df) < 100:
+        if df.empty or len(df) < 110:  # allow a bit more data for safety
             return None
         df['ema_13'] = ta.trend.EMAIndicator(df['Close'], window=13).ema_indicator()
         df['ema_48'] = ta.trend.EMAIndicator(df['Close'], window=48).ema_indicator()
@@ -25,18 +25,15 @@ def fetch_data(symbol):
         return None
 
 def crossed_within_last_n_days(df, n=100):
-    ema_13 = df['ema_13']
-    ema_48 = df['ema_48']
-
-    for i in range(-n, -1):
-        if ema_13.iloc[i] < ema_48.iloc[i] and ema_13.iloc[i + 1] > ema_48.iloc[i + 1]:
-            return True
-    return False
+    recent = df[-(n+1):].copy()
+    recent['ema_above'] = recent['ema_13'] > recent['ema_48']
+    # True where crossover happened: today ema_above == True and yesterday ema_above == False
+    cross_points = recent['ema_above'] & (~recent['ema_above'].shift(1).fillna(False))
+    return cross_points.any()
 
 def analyze_stock(symbol, df):
-    if df is None or len(df) < 100:
+    if df is None or len(df) < 110:
         return None
-
     if crossed_within_last_n_days(df, n=100):
         latest = df.iloc[-1]
         return {
@@ -54,6 +51,9 @@ results = []
 
 for symbol in symbols_sp:
     df = fetch_data(symbol)
+    if df is None:
+        st.write(f"Skipping {symbol}: insufficient or no data")
+        continue
     result = analyze_stock(symbol, df)
     if result:
         results.append(result)

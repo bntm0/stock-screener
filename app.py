@@ -26,7 +26,6 @@ def fetch_data(symbol):
         df['ema_48'] = ta.trend.EMAIndicator(df['Close'], window=48).ema_indicator()
         df['ema_200'] = ta.trend.EMAIndicator(df['Close'], window=200).ema_indicator()
         df['rsi'] = ta.momentum.RSIIndicator(df['Close']).rsi()
-        df['adx'] = ta.trend.ADXIndicator(df['High'], df['Low'], df['Close']).adx()
         return df
     except Exception:
         return None
@@ -56,24 +55,18 @@ def analyze_stock(symbol, df):
         score += 1
         details.append("RSI > 35")
 
-    # ADX below 12
-    if latest['adx'] < 12:
-        score += 1
-        details.append("ADX < 12 (weak trend)")
-
     if score >= 2:
         return {
             "Symbol": symbol,
             "Score": score,
             "Criteria Met": ", ".join(details),
             "Price": round(latest['Close'], 2),
-            "RSI": round(latest['rsi'], 2),
-            "ADX": round(latest['adx'], 2)
+            "RSI": round(latest['rsi'], 2)
         }
     else:
         return None
 
-st.write("Scanning the S&P 500 for stocks meeting at least 2 of 4 conditions...")
+st.write("Scanning the S&P 500 for stocks meeting at least 2 of 3 conditions...")
 
 symbols = get_sp500_symbols()
 results = []

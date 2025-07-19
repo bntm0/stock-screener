@@ -4,7 +4,7 @@ import yfinance as yf
 import ta
 from concurrent.futures import ThreadPoolExecutor
 
-st.set_page_config(page_title="S&P 500 Stock Screener", layout="wide")
+st.set_page_config(page_title="Stock Screener", layout="wide")
 st.title("📈 S&P 500 Technical Stock Screener")
 
 st.markdown("""
